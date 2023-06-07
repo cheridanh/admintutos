@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>AdminTutos | IPsec Pfsense</title>
+		<link href="../asset/css/main.css" rel="stylesheet">
+		<link href="../asset/css/bootstrap-4.4.1.css" rel="stylesheet">
+	</head>
+	
+	<body>
+		<header>
+			<nav class="navbar navbar-expand-lg navbar-light bg-light">
+				<a class="navbar-brand" href="../index.html">AdminTutos</a>
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav mr-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="../index.html">Accueil</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="#">A propos</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</header>
+		<main>
+			<div class="container">
+				<div class="row col-md-12">
+					<div class="jumbotron">
+						<h1 class="display-4">VPN IPsec site to site avec Pfsense </h1>
+						<p class="lead">
+							Dans ce chapître, nous verrons comment implémenter un tunnel VPN entre deux pfsense différents.<br>Si vous ne savez pas comment installer Pfsense, je vous invite à suivre le tuto sur <a class="" href="#">Installation et configuration de Pfsense</a>.
+						</p>
+						<hr class="my-4">
+						<h2>Pré-requis :</h2>
+						<p>
+							Pour réaliser notre projet, nous aurons besoin de :<br>
+						</p>
+						<ul>
+							<li>Deux routeurs Pfsense</li>
+							<li>Deux postes clients</li>
+						</ul>
+						<h2>Topologie :</h2>
+						<p>Voici le schéma de notre réseau :</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/topologie-mikrotik.png" class="img-fluid" alt="topologie-pfsense-ipsec">
+						</p>
+						<h2>Configuration IPsec :</h2>
+						<p>
+							Comme l'indique notre topologie et l'image suivant, voici ce qu'il en ai du Pfsense-1 :
+						</p>
+						<ul class="font-weight-bold">
+							<li>WAN : 10.0.2.4</li>
+							<li>LAN : 192.168.1.1/24</li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/pfsense/shell-pfsense-1.png" class="img-fluid" alt="shell-pfsense-1">
+						</p>
+						<p>
+							Et pour le Pfsense-2 :
+						</p>
+						<ul class="font-weight-bold">
+							<li>WAN : 10.0.2.5/24</li>
+							<li>LAN : 192.168.2.1/24</li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/pfsense/shell-pfsense-2.png" class="img-fluid" alt="shell-pfsense-2">
+						</p>
+						<p>
+							Sans plus tarder, pour commencer la configuration de notre IPsec nous derions nous rendre dans le menu <strong>VPN &raquo; IPsec</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/menu-ipsec.png" class="img-fluid" alt="menu-ipsec">
+						</p>
+						<p>
+							Une fois dans le menu, cliquez sur <strong>&laquo; + Add P1 &raquo;</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/add-ipsec-wan.png" class="img-fluid" alt="add-ipsec-wan">
+						</p>
+						<h4>Pour le Pfsense-1 :</h4>
+						<p>
+							Renseignez les champs suivants :
+						</p>
+						<ul class="font-weight-bold">
+							<li>Description : Connexion vers Site B</li>
+							<li>Remote Gateway : 10.0.2.5</li>
+							<li>Pre-shared Key : connexion-ipsec</li>
+							<li>Encryption Algorithm : AES256-GCM</li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/pfsense/ipsec-1a.png" class="img-fluid" alt="ipsec-1a">
+							<img src="../asset/images/captures/pfsense/ipsec-1b.png" class="img-fluid" alt="ipsec-1b">
+							<img src="../asset/images/captures/pfsense/ipsec-1c.png" class="img-fluid" alt="ipsec-1c">
+						</p>
+						<p>
+							Le reste des paramètres laissez par défaut, puis n'oubliez pas de cliquer sur le bouton 
+							<img src="../asset/images/captures/pfsense/btn-save.png" class="img-fluid" alt="save">
+						</p>
+						<p>
+							De nouveau sur la page de menu IPsec, cliquez sur 
+							<img src="../asset/images/captures/pfsense/show-phase-2.png" class="img-fluid" alt="show-phase-2">
+						</p>
+						<p>
+							Puis sur 
+							<img src="../asset/images/captures/pfsense/add-p2.png" class="img-fluid" alt="add-p2">
+						</p>
+						<p>
+							Ici, renseignez les champs suivants :
+						</p>
+						<ul class="font-weight-bold">
+							<li>Description : LAN Site B</li>
+							<li>Remote : Network</li>
+							<li>Adress : 192.168.2.0</li>
+							<li>Encryption Algorithm : AES256-GCM</li>
+							<li>Automatically ping host : 192.168.2.1</li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/pfsense/ipsec-1-a.png" class="img-fluid" alt="ipsec-1-a">
+							<img src="../asset/images/captures/pfsense/ipsec-1-b.png" class="img-fluid" alt="ipsec-1-b">
+							<img src="../asset/images/captures/pfsense/ipsec-1-c.png" class="img-fluid" alt="ipsec-1-c">
+						</p>
+						<p>
+							Cliquez sur
+							<img src="../asset/images/captures/pfsense/btn-save.png" class="img-fluid" alt="save"><br>
+							La page du menu IPsec de notre Pfsense-1 ressemblera à ceci :
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/ipsec-1-d.png" class="img-fluid" alt="ipsec-1-d">
+						</p>
+						<p>
+							Cliquez sur
+							<img src="../asset/images/captures/pfsense/apply-changes.png" class="img-fluid" alt="apply-changes">
+						</p>
+						<br>
+						<h4>Pour le Pfsense-2 :</h4>
+						<p>
+							Passons maintenant au Pfsense-2. Renseignez les champs suivants :
+						</p>
+						<ul class="font-weight-bold">
+							<li>Description : Connexion vers Site A</li>
+							<li>Remote Gateway : 10.0.2.4</li>
+							<li>Pre-shared Key : connexion-ipsec</li>
+							<li>Encryption Algorithm : AES256-GCM</li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/pfsense/ipsec-2a.png" class="img-fluid" alt="ipsec-2a">
+							<img src="../asset/images/captures/pfsense/ipsec-2b.png" class="img-fluid" alt="ipsec-2b">
+							<img src="../asset/images/captures/pfsense/ipsec-2c.png" class="img-fluid" alt="ipsec-2c">
+						</p>
+						<p>
+							Puis, n'oubliez pas de cliquer sur le bouton 
+							<img src="../asset/images/captures/pfsense/btn-save.png" class="img-fluid" alt="save">
+						</p>
+						<p>
+							De nouveau sur la page de menu IPsec, cliquez sur 
+							<img src="../asset/images/captures/pfsense/show-phase-2.png" class="img-fluid" alt="show-phase-2">
+						</p>
+						<p>
+							Puis sur 
+							<img src="../asset/images/captures/pfsense/add-p2.png" class="img-fluid" alt="add-p2">
+						</p>
+						<p>
+							Ici, renseignez les champs suivants :
+						</p>
+						<ul class="font-weight-bold">
+							<li>Description : LAN Site A</li>
+							<li>Remote : Network</li>
+							<li>Adress : 192.168.1.0</li>
+							<li>Encryption Algorithm : AES256-GCM</li>
+							<li>Automatically ping host : 192.168.1.1</li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/pfsense/ipsec-2-a.png" class="img-fluid" alt="ipsec-2-a">
+							<img src="../asset/images/captures/pfsense/ipsec-2-b.png" class="img-fluid" alt="ipsec-2-b">
+							<img src="../asset/images/captures/pfsense/ipsec-2-c.png" class="img-fluid" alt="ipsec-2-c">
+						</p>
+						<p>
+							Cliquez sur
+							<img src="../asset/images/captures/pfsense/btn-save.png" class="img-fluid" alt="save"><br>
+							La page du menu IPsec de notre Pfsense-2 ressemblera à ceci :
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/ipsec-2-d.png" class="img-fluid" alt="ipsec-2-d">
+						</p>
+						<h2>Vérification de la connexion :</h2>
+						<p>
+							Pour voir que notre IPsec fonctionne correctement, rendez-vous dans le menu <strong>Status &raquo; IPsec</strong>
+						</p>
+						<h4>Pfsense-1</h4>
+						<p>
+							<img src="../asset/images/captures/pfsense/status-pfsense-1.png" class="img-fluid" alt="status-pfsense-1">
+						</p>
+						<h4>Pfsense-2</h4>
+						<p>
+							<img src="../asset/images/captures/pfsense/status-pfsense-2.png" class="img-fluid" alt="status-pfsense-2">
+						</p>
+						<p>
+							Pour la vérification des logs IPsec, rendez-vous dans le menu <strong>Status &raquo; System Logs</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/ipsec-logs.png" class="img-fluid" alt="ipsec-logs">
+						</p>
+						<br>
+						<h2>Règles IPsec</h2>
+						<p>
+							La connexion IPsec est mis en place mais ce n'est pas encore fini car si vous tenter de faire les pings entre les deux ça ne marchera pas.<br>
+							Pas de panique, il vous suffit simplement d'ajoutez une règle à notre firewell pour que tout fonctionne correctement.
+						</p>
+						<p>
+							Ceci étant dit, pour mettre en place la règle qui vont nous permettre de communiquer rendez-vous sur <strong>Firewall &raquo; Rules</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/menu-rules.png" class="img-fluid" alt="menu-rules">
+						</p>
+						<p>
+							Ensuite cliquez sur l'onglet <strong>&laquo; IPsec &raquo;</strong> puis sur le bouton <strong>&laquo; Add &raquo;</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/rules-ipsec.png" class="img-fluid" alt="rules">
+						</p>
+						<br>
+						<h4>Pfsense-1</h4>
+						<p>
+							<img src="../asset/images/captures/pfsense/rules-pfsense-1.png" class="img-fluid" alt="rules">
+						</p>
+						<p>
+							Cliquez sur 
+							<img src="../asset/images/captures/pfsense/btn-save.png" class="img-fluid" alt="save">
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/rules-pfsense-a.png" class="img-fluid" alt="rules">
+						</p>
+						<br>
+						<h4>Pfsense-2</h4>
+						<p>
+							<img src="../asset/images/captures/pfsense/rules-pfsense-2.png" class="img-fluid" alt="rules">
+						</p>
+						<p>
+							Cliquez sur 
+							<img src="../asset/images/captures/pfsense/btn-save.png" class="img-fluid" alt="save">
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/rules-pfsense-b.png" class="img-fluid" alt="rules">
+						</p>
+						<br>
+						<h4>Pfsense-1 et Pfsense-2 :</h4>
+						<p>
+							Par défaut, la règle LAN qui se trouve ne pose aucun problème car elle autorise le passage de n'importe quel protocole depuis le réseau local (LAN) vers n'importe quel réseau.
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/rules-lan-default.png" class="img-fluid" alt="rules">
+						</p>
+						<br>
+						<h2>Test Ping</h2>
+						<p>
+							Le PC1 en 192.168.1.2 réussi à pinger le PC2 en 192.168.2.2 et vice versa.
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/pc1-pc2.png" class="img-fluid" alt="ping">
+						</p>
+						<p>
+							<img src="../asset/images/captures/pfsense/pc2-pc1.png" class="img-fluid" alt="ping">
+						</p>
+						<!-- -->
+						<br>
+						<p class="lead">
+							<a class="btn btn-primary btn-lg text-left" href="./eoip-mikrotik.html" role="button">Lire le chapître suivant :<br><i>&laquo; Tunnel EoIP sur MikroTik CHR avec IPsec &raquo;</i></a>
+						</p>
+					</div>
+				</div>
+				<footer class="row">
+				  <div class="text-center col-lg-6 offset-lg-3">
+						<h4>AdminTutos</h4>
+						<hr>
+						<p>Copyright &copy; 2023 &middot; All Rights Reserved &middot;</p>
+					</div>
+				</footer>
+			</div>
+		</main>
+		
+		<script src="js/jquery-3.4.1.min.js"></script>
+		<script src="js/popper.min.js"></script>
+		<script src="js/bootstrap-4.4.1.js"></script>
+		
+	</body>
+</html>
