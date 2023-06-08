@@ -29,13 +29,13 @@
 			</nav>
 		</header>
 		<main>
-			<div class="container">
+			<div class="container-fluid">
 				<div class="row col-md-12">
 					<div class="jumbotron">
 						<h1 class="display-4">Tunnel EoIP sur MikroTik CHR avec IPsec</h1>
 						<p class="lead">
 							Dans ce tuto nous utiliserons GNS3<br>
-							Si vous n'avez pas encore installé GNS3, je vous invite à faire un tour sur <a href="https://cours.rihan.fr">cours.rihan.fr</a>
+							Si vous n'avez pas encore installé GNS3, je vous invite à faire un tour sur <a href="https://cours.rihan.fr" target="_blank">cours.rihan.fr</a>
 						</p>
 						<hr class="my-4">
 						<h2>Pré-requis :</h2>
@@ -43,45 +43,616 @@
 							Pour mener à bien notre projet, nous aurons besoin de :<br>
 						</p>
 						<ul>
-							<li>Quatre routeurs MikroTik</li>
-							<li>Trois postes clients derrières trois routeurs</li>
+							<li>Le logiciel GNS3</li>
+							<li>La template MikroTik CHR téléchargé</li>
 						</ul>
 						<h2>Topologie :</h2>
-						<p>Voici le schéma de notre réseau :</p>
+						<p>
+							Considérons le routeur <strong>R0</strong> comme routeur qui donne accès à internet aux autres routeurs.<br>
+							Nous allons donc créer un tunnel EoIP entre les routeurs <strong>R1, R2 et R3</strong> afin qu'ils communiquent directement entre eux par un réseau sécurisé sans passer par <strong>R0</strong> et de mettre en place et le service DHCP comme le montre l'image ci-dessous:
+						</p>
 						<p>
 							<img src="../asset/images/captures/pfsense/topologie-mikrotik.png" class="img-fluid" alt="topologie-pfsense-ipsec">
 						</p>
+						<br>
+						<h2>Configuration :</h2>
 						<p>
-							Dans le Pfsense 1 :
+							Dans un premier temps nous allons mettre les adresses IP dans nos différents routeurs. Ensuite nous allons mettre en place les tunnels EoIP entre les routeurs en même que le service DHCP pour chacun des routeurs.
+						</p>
+						<p>
+							Avez-vous compris ? Je m'explique. Prenons le cas où le routeur R1 doit faire office de DHCP pour les poste clients des routeurs R2 et de R3. Nous sommes d'accord que dans le cas de notre topologie il nous faudrait  mettre en place les relais DHCP pour que cela soit possible ? Et pour éviter de mettre en place les relais DHCP, nous mettons en place des tunnels VPN pour permettre aux deux routeurs du tunnel d'etre dans le même domaine de diffusion.
+						</p>
+						<p>
+							Quand le routeur R1 sera server DHCP des postes clients des deux autres routeurs, on devra dans R1 deux tunnels (un tunnel vers R2 avec un id spécifique et un autre vers R3 avec également spécifique) car on ne peut associer deux routeurs distants simultanément dans un tunnel VPN. Après avoir créer ces deux tunnels dans R1, on devra maintenant créer dans R2 un tunnel vers R1 avec le même id que celui créer dans R1 vers R2 pour que la communication soit réciproque. Puis on fera autant dans le routeur R3pour établir la communication dans les deux sens avec R1. Et sans oublier créer un DHCP dans R1.
+						</p>
+						<p>
+							De même quand R2 sera routeur DHCP des postes clients des routeurs R1 et R3, nous allons procéder de la même manière que nous avions fait dans R1. Et après on refera la même chose quand R3 sera DHCP. En gros c'est faire le même travail trois fois si je peux dire ça comme ça.
+						</p>
+						<p>
+							Fini la théorie on passe à la pratique. Lançez vos GNS3 et allons-y.
+						</p>
+						<br>
+						<h4>Adressage des routeurs :</h4>
+						<p>
+							Dans R0 :
 						</p>
 						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
 							<blockquote class="blockquote">
 								<p>
-									/ip address add address=192.168.10.1/24 interface=ether2
+									system identity set name=R0
+								<br>	
+									address add address=10.10.10.1/24 interface=ether1
 								</p>
 							</blockquote>
 						</figure>
-						<img src="../asset/images/captures/pfsense/screencapture-192-168-0-1-vpn-ipsec-phase1-php-2023-06-02-16_16_36.png" class="img-fluid" alt="Placeholder image">
-						<p class="lead">
-							<a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+						<p>
+							Dans R1 :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									system identity set name=R1
+									<br>	
+									ip address add address=10.10.10.2/24 interface=ether1
+									<br>
+									ip address add address=192.168.10.1/24 interface=ether2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Dans R2 :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									system identity set name=R2
+									<br>	
+									address add address=10.10.10.3/24 interface=ether1
+									<br>
+									ip address add address=192.168.20.1/24 interface=ether2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Dans R3 :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									system identity set name=R3
+									<br>	
+									address add address=10.10.10.3/24 interface=ether1
+									<br>
+									ip address add address=192.168.30.1/24 interface=ether2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Pour voir afficher les adresses IP attribuées, utiliser la commande :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									ip address print
+								</p>
+							</blockquote>
+						</figure>
+						<br>
+						<h4>Partie 1 : Tunnel EoIP + DHCP dans R1</h4>
+						<br>
+						<h4>R1</h4>
+						<p>Commençons par créer les deux tunnels puis ajouter un mot de passe ipsec aux tunnels</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									interface eoip/
+									<br>
+									add name=eoip-client-dhcp-r2 tunnel-id=0 remote-address=10.10.10.3 disabled=no allow-fast-path=no
+									<br>
+									add name=eoip-client-dhcp-r3 tunnel-id=1 remote-address=10.10.10.4 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set 0 ipsec-secret=iticparis.com
+									<br>
+									set 1 ipsec-secret=iticparis.com
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Toute fois apres avoir fait un <strong>interface eoip print</strong>, mettez le numero du tunnel correspondant dans <strong>interface eoip set</strong>
+						</p>
+						<p>
+							Ensuite créer un bridge dans lequel nous mettrons les interfaces qui feront parties du même domaine de diffusion
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r1
+									<br>
+									add port bridge=bridge-dhcp-server-r1 interface=eoip-client-dhcp-r2
+									<br>	
+									add port bridge=bridge-dhcp-server-r1 interface=eoip-client-dhcp-r3
+									<br>
+									add port bridge=bridge-dhcp-server-r1 interface=ether2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Utiliser les commandes suivantes pour afficher les interfaces bridges créees ou pour afficher les port qui appartiennent à un bridge :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									interface bridge print
+									<br>
+									interface bridge port print
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Maintenant que notre interface bridge est créée, mettons une adresse ip dessus :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>	
+									address add address=192.168.110.1/24 interface=bridge-dhcp-server-r1
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Passons maintenant à la mise en place de notre service DHCP
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									ip dhcp-server setup/
+									<br>
+									dhcp server interface: bridge-dhcp-server-r1
+									<br>
+									dhcp address space: 192.168.110.0
+									<br>	
+									gateway for dhcp network: 192.168.110.1
+									<br>
+									address to give out: 192.168.110.2-192.168.110.254
+									<br>
+									dns servers: 192.168.110.1
+									<br>
+									lease time: 1d
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							A ce stade, tout est prêt pour le routeur R1 et nous pouvons voir dans l'image suivante, le PC1 obtenir une adresse ip venant du DHCP que nous avions crée.
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc1-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						
+						<h4>R2</h4>
+						<p>Comme nous l'avions dit au début un tunnel doit être mis en place des deux côtés pour assurer la communication des sous réseaux.</p>
+						<p>Commençons par créer le tunnel eoip</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									interface eoip/
+									<br>
+									add name=eoip-server-dhcp-r1 tunnel-id=0 remote-address=10.10.10.2 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set 0 ipsec-secret=iticparis.com
+								</p>
+							</blockquote>
+						</figure>
+						<p>Puis créons l'interface bridge du routeur R2 avec une adresse ip du meme réseau que celui de l'interface bridge dur routeur R1.</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r1
+									<br>
+									add port bridge=bridge-dhcp-server-1 interface=eoip-server-dhcp-r1
+									<br>	
+									add port bridge=bridge-dhcp-server-1 interface=ether3
+								</p>
+							</blockquote>
+						</figure>
+						
+						<p>
+							Mettons une adresse ip à notre interface bridge :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>	
+									address add address=192.168.110.2/24 interface=bridge-dhcp-server-r1
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Point n'est besoin de mettre le service DHCP car dans ce premier cas c'est le routeur R1 qui s'en charge pour l'interface pour que nous avions bridger avec notre tunnel nouvellement créé.
+						</p>
+						<p>
+							En prenant alors le PC qui se trouve sur le port ether3 du routeur R2 (PC5), nous voyons bien qu'il a reçu une adresse ip du DHCP de notre routeur R1.
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc5-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						
+						
+						<h4>R3</h4>
+						<p>Sans plus tarder passons au dernier routeur</p>
+						<p>Commençons par créer le tunnel eoip</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									interface eoip/
+									<br>
+									add name=eoip-server-dhcp-r1 tunnel-id=1 remote-address=10.10.10.2 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set 0 ipsec-secret=iticparis.com
+								</p>
+							</blockquote>
+						</figure>
+						<p>Puis créons l'interface bridge du routeur R2 avec une adresse ip du meme réseau que celui de l'interface bridge dur routeur R1.</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r1
+									<br>
+									add port bridge=bridge-dhcp-server-1 interface=eoip-server-dhcp-r1
+									<br>	
+									add port bridge=bridge-dhcp-server-1 interface=ether3
+								</p>
+							</blockquote>
+						</figure>
+						
+						<p>
+							Mettons une adresse ip à notre interface bridge :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>	
+									address add address=192.168.110.3/24 interface=bridge-dhcp-server-r1
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							En prenant alors le PC qui se trouve sur le port ether3 du routeur R2 (PC5), nous voyons bien qu'il a reçu une adresse ip du DHCP de notre routeur R1.
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc8-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						
+						<h4>Partie 2 : Tunnel EoIP + DHCP dans R2</h4>
+						<p>
+							Ici nous allons refaire la même chose que nous avions fait précédement. 
+						</p>
+						<p>
+							Je vous conseille de tout commencer par le routeur concerné (R2 dans ce cas présent)
 						</p>
 						
+						<h4>R2</h4>
+						<p>Voici toute la nouvelle config à  ajouter :</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									Création du tunnel EoIP
+									<br><br>
+									interface eoip/
+									<br>
+									add name=eoip-client-dhcp-r1 tunnel-id=2 remote-address=10.10.10.2 disabled=no allow-fast-path=no
+									<br>
+									add name=eoip-client-dhcp-r3 tunnel-id=3 remote-address=10.10.10.4 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set "numero-tunnel-afficher dans-print" ipsec-secret=iticparis.com
+									<br>
+									set "numero-tunnel-afficher dans-print" ipsec-secret=iticparis.com
+									<br><br>
+									Création du bridge et assignation des interfaces
+									<br><br>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r2
+									<br>
+									add port bridge=bridge-dhcp-server-r2 interface=eoip-client-dhcp-r1
+									<br>	
+									add port bridge=bridge-dhcp-server-r2 interface=eoip-client-dhcp-r3
+									<br>
+									add port bridge=bridge-dhcp-server-r2 interface=ether2
+									<br><br>
+									Adresse du bridge
+									<br><br>
+									ip address add address=192.168.120.1/24 interface=bridge-dhcp-server-r2
+									<br><br>
+									Service DHCP
+									<br><br>
+									ip dhcp-server setup/
+									<br>
+									dhcp server interface: bridge-dhcp-server-r2
+									<br>
+									dhcp address space: 192.168.120.0
+									<br>	
+									gateway for dhcp network: 192.168.120.1
+									<br>
+									address to give out: 192.168.120.2-192.168.120.254
+									<br>
+									dns servers: 192.168.120.1
+									<br>
+									lease time: 1d
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Dans l'image ci-dessous, nous pouvons bien voir que le PC connecté au port ether2 du routeur R2 (PC4) à bien reçu une adresse IP venant du routeur R2.
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc4-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						<h4>R1</h4>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									Création du tunnel EoIP
+									<br><br>
+									interface eoip/
+									<br>
+									add name=eoip-server-dhcp-r2 tunnel-id=2 remote-address=10.10.10.3 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set "nombre-tunnel-affcher-dans-print" ipsec-secret=iticparis.com
+									<br><br>
+									Création du bridge et assignation des interfaces
+									<br><br>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r2
+									<br>
+									add port bridge=bridge-dhcp-server-r2 interface=eoip-server-dhcp-r2
+									<br>
+									add port bridge=bridge-dhcp-server-r2 interface=ether3
+									<br><br>
+									Adresse du bridge
+									<br><br>
+									ip address add address=192.168.120.2/24 interface=bridge-dhcp-server-r2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							De même pour le PC2 connecté à l'interface ether2 du routeur R1 que nous avions mis dans notre à bien reçu l'adresse IP du routeur distant R2.
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc2-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						<h4>R3</h4>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									Création du tunnel EoIP
+									<br><br>
+									interface eoip/
+									<br>
+									add name=eoip-server-dhcp-r2 tunnel-id=3 remote-address=10.10.10.3 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set "nombre-tunnel-affcher-dans-print" ipsec-secret=iticparis.com
+									<br><br>
+									Création du bridge et assignation des interfaces
+									<br><br>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r2
+									<br>
+									add port bridge=bridge-dhcp-server-r2 interface=eoip-server-dhcp-r2
+									<br>
+									add port bridge=bridge-dhcp-server-r2 interface=ether4
+									<br><br>
+									Adresse du bridge
+									<br><br>
+									ip address add address=192.168.120.3/24 interface=bridge-dhcp-server-r2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Il en va de même pour le PC9 qui lui aussi à son tour à reçu une adresse IP du routeur R2. Et on voit bien que les tests de ping entre différent PC passent sans problème.
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc9-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						
+						
+						<h4>Partie 3 : Tunnel EoIP + DHCP dans R3</h4>
+						<p>
+							Je suppose que vous avez compris le principe, alors sans plus tarder allons-y.
+						</p>
+						
+						<h4>R3</h4>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									Création du tunnel EoIP
+									<br><br>
+									interface eoip/
+									<br>
+									add name=eoip-client-dhcp-r1 tunnel-id=4 remote-address=10.10.10.2 disabled=no allow-fast-path=no
+									<br>
+									add name=eoip-client-dhcp-r2 tunnel-id=5 remote-address=10.10.10.3 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set "numero-tunnel-afficher-dans-print" ipsec-secret=iticparis.com
+									<br>
+									set "numero-tunnel-afficher-dans-print" ipsec-secret=iticparis.com
+									<br><br>
+									Création du bridge et assignation des interfaces
+									<br><br>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r3
+									<br>
+									add port bridge=bridge-dhcp-server-r3 interface=eoip-client-dhcp-r1
+									<br>	
+									add port bridge=bridge-dhcp-server-r3 interface=eoip-client-dhcp-r2
+									<br>
+									add port bridge=bridge-dhcp-server-r3 interface=ether2
+									<br><br>
+									Adresse du bridge
+									<br><br>
+									ip address add address=192.168.130.1/24 interface=bridge-dhcp-server-r3
+									<br><br>
+									Service DHCP
+									<br><br>
+									ip dhcp-server setup/
+									<br>
+									dhcp server interface: bridge-dhcp-server-r3
+									<br>
+									dhcp address space: 192.168.130.0
+									<br>	
+									gateway for dhcp network: 192.168.130.1
+									<br>
+									address to give out: 192.168.130.2-192.168.130.254
+									<br>
+									dns servers: 192.168.130.1
+									<br>
+									lease time: 1d
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							L'image suivante nous montre que le PC7 à reçu une adresse IP et nous voyons bien comment elle réusit à pinger les autres postes clients qui ne sont pas dans le même sous réseau que lui. La connectivité entre les trois routeurs est sans problème. 
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc7-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						<h4>R1</h4>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									Création du tunnel EoIP
+									<br><br>
+									interface eoip/
+									<br>
+									add name=eoip-server-dhcp-r3 tunnel-id=4 remote-address=10.10.10.4 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set "nombre-tunnel-affcher-dans-print" ipsec-secret=iticparis.com
+									<br><br>
+									Création du bridge et assignation des interfaces
+									<br><br>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r3
+									<br>
+									add port bridge=bridge-dhcp-server-r3 interface=eoip-server-dhcp-r3
+									<br>
+									add port bridge=bridge-dhcp-server-r3 interface=ether4
+									<br><br>
+									Adresse du bridge
+									<br><br>
+									ip address add address=192.168.130.2/24 interface=bridge-dhcp-server-r3
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Le PC3 a bien reçu son adresse IP
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc3-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						<h4>R2</h4>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									Création du tunnel EoIP
+									<br><br>
+									interface eoip/
+									<br>
+									add name=eoip-server-dhcp-r3 tunnel-id=5 remote-address=10.10.10.4 disabled=no allow-fast-path=no
+									<br>	
+									print
+									<br>
+									set "nombre-tunnel-affcher-dans-print" ipsec-secret=iticparis.com
+									<br><br>
+									Création du bridge et assignation des interfaces
+									<br><br>
+									interface bridge/
+									<br>
+									add name=bridge-dhcp-server-r3
+									<br>
+									add port bridge=bridge-dhcp-server-r3 interface=eoip-server-dhcp-r3
+									<br>
+									add port bridge=bridge-dhcp-server-r3 interface=ether4
+									<br><br>
+									Adresse du bridge
+									<br><br>
+									ip address add address=192.168.130.3/24 interface=bridge-dhcp-server-r3
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Enfin le PC6 aussi à reçu une adresse IP.
+						</p>
+						<p>
+							<img src="../asset/images/captures/mikrotik/pc6-dora.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						
+						
+						<h2>Récapitulatif de la configuration :</h2>
+						<br>
+						<h4>R1</h4>
+						<p>
+							<img src="../asset/images/captures/mikrotik/r1-print.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						<h4>R2</h4>
+						<p>
+							<img src="../asset/images/captures/mikrotik/r2-print.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						<h4>R3</h4>
+						<p>
+							<img src="../asset/images/captures/mikrotik/r2-print.png" class="img-fluid" alt="pc1">
+						</p>
+						<br>
+						<p>Merci pour votre attention ça été long mais ça vallait le coup de s'y mettre.</p>
+						
+						
+						<!-- -->
+						<br>
+						<p class="lead">
+							<a class="btn btn-primary btn-lg text-left" href="./ocs-debian.html" role="button">Lire le chapître suivant :<br><i>&laquo; OCS Inventory NG sous Debian 11 &raquo;</i></a>
+						</p>
 					</div>
 				</div>
-				<br>
-				<hr>
-				<br>
-				<nav>
-					<ul class="pagination">
-						<li class="page-item"> <a class="page-link" href="#" aria-label="Previous"> <span aria-hidden="true">&laquo;</span> <span class="sr-only">Retour</span></a></li>
-						<li class="page-item active"> <span class="page-link"> 1 <span class="sr-only">(current)</span></span></li>
-						<!--<li class="page-item"><a class="page-link" href="#">2</a></li>
-						<li class="page-item"><a class="page-link" href="#">3</a></li>
-						<li class="page-item"><a class="page-link" href="#">4</a></li>
-						<li class="page-item disabled"><a class="page-link" href="#">5</a></li>-->
-						<li class="page-item"> <a class="page-link" href="#" aria-label="Next"> <span aria-hidden="true">&raquo;</span> <span class="sr-only">Suivant</span></a></li>
-					</ul>
-				</nav>
 				<footer class="row">
 				  <div class="text-center col-lg-6 offset-lg-3">
 						<h4>AdminTutos</h4>

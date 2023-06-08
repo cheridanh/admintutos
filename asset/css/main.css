@@ -1,3 +1,10 @@
 main {
-	padding-top: 20px;
+	padding: 20px;
+	text-align: justify;
+}
+figure blockquote {
+	widht: 50px;
+}
+blockquote p {
+	font-size: 15px;
 }
