@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>AdminTutos | OCS Inventory</title>
+		<link href="../asset/css/main.css" rel="stylesheet">
+		<link href="../asset/css/bootstrap-4.4.1.css" rel="stylesheet">
+	</head>
+	
+	<body>
+		<header>
+			<nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+				<a class="navbar-brand" href="../index.html">AdminTutos</a>
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav mr-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="../index.html">Accueil</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../pages/aboutme.html">A propos</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</header>
+		<main>
+			<div class="container-fluid">
+				<div class="row col-md-12">
+					<div class="jumbotron">
+						<h1 class="display-4">OCS Inventory NG sous Ubuntu Server</h1>
+						<p class="lead">
+							Dans ce tutos, nous allons apprendre comment installer un outil d'inventoring. Ce tuto se fait avec la version de Ubuntu 22.04 LTS.
+							<br>
+							Si vous n'avez pas Ubuntu installer, je vous invite à suivre mon tutos sur <a class="" href="#">Installation de Ubuntu Server 22.04</a>.
+						</p>
+						<hr class="my-4">
+						<h2>Pré-requis :</h2>
+						<p>
+							Pour mener à bien notre projet, nous aurons besoin de :<br>
+						</p>
+						<ul>
+							<li>Ubuntu Server</li>
+						</ul>
+						<p>Et oui, rien que ça !</p>
+						<h2>Configuration :</h2>
+						<p>
+							Pour commencer, faites la mise à jour des dépôts
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo apt update && sudo apt upgrade -y
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Installez les extensions PHP et certaines dépendances
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo apt install -y git curl wget make cmake gcc make php-mbstring php-xml php-mysql php-zip php-pclzip php-gd php-soap php-curl php-json libapache2-mod-perl2 libapache-dbi-perl libapache-db-perl libapache2-mod-php libarchive-zip-perl
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Installez de MariaDB
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo apt install mariadb-server mariadb-client
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Installez des modules Perl
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo apt install -y perl libxml-simple-perl libcompress-zlib-perl libdbi-perl libdbd-mysql-perl libnet-ip-perl libsoap-lite-perl libio-compress-perl libapache-dbi-perl libapache2-mod-perl2 libapache2-mod-perl2-dev
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Activez des modules Perl
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo perl -MCPAN -e 'install Apache2::SOAP'
+									<br><br>
+									sudo perl -MCPAN -e 'install XML::Entities'
+									<br><br>
+									sudo perl -MCPAN -e 'install Net::IP'
+									<br><br>
+									sudo perl -MCPAN -e 'install Apache::DBI'
+									<br><br>
+									sudo perl -MCPAN -e 'install Mojolicious'
+									<br><br>
+									sudo perl -MCPAN -e 'install Switch'
+									<br><br>
+									sudo perl -MCPAN -e 'install Plack::Handler'
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Connectez vous à MariaDB
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo mysql -uroot -p
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Une fois connecté, creez la base de données pour OCS
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									CREATE DATABASE ocs_db;
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Créez un utilisateur et son mot de passe (pour notre cas l'utilisateur c'est ocs_user avec comme mot de passe ocs_pwd)
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									CREATE USER ocs_user@localhost IDENTIFIED BY 'ocs_pwd';
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Attribuez les privilèges à notre utilisateur que nous venons de créer
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									GRANT ALL ON ocs_db.* TO ocs_user@localhost;
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Actualisez
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									FLUSH PRIVILEGES;
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Une fois que tout cela est fait, déconnectez vous
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									EXIT;
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Téléchargez maintenant OCS Inventory Server
+						</p>
+						<p>
+							Pour ce faire, rendez-vous sur la <a href="https://ocsinventory-ng.org/?page_id=1235&lang=fr" target="_blank">page de téléchargement de OCS Inventory Server</a>
+						</p>
+						<p>
+							Une fois sur la page, cliquer sur <strong>OCS Inventory Server Unix/Linux</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-server-download-page.png" class="img-fluid" style="width: 40rem; height: auto" alt="ocs-download">
+						</p>
+						<p>
+							Pour le formulaire qui s'affiche, il vous suffit de rentrer votre adresse mail. Le reste des champs peut rester vide. Ensuite cliquez sur <strong>Send</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-formulaire.png" class="img-fluid" style="width: 40rem; height: auto" alt="ocs-formulaire">
+						</p>
+						<p>
+							Ensuite rendez-vous dans votre messagerie, ouvrir le message de OCS puis faites un clique droit pour obtenir le lien du téléchargement.
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-mail.png" class="img-fluid" style="width: 40rem; height: auto" alt="ocs-mail">
+						</p>
+						<p>
+							Après avoir copié le lien faites
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo wget coller_le_lien
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Si vous ne pouvez pas faire de copier coller, utiliser ce lien pour télécharger la version 2.11.1
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo wget https://github.com/OCSInventory-NG/OCSInventory-ocsreports/releases/download/2.11.1/OCSNG_UNIX_SERVER-2.11.1.tar.gz
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Pour voir le dossier de OCS Inventory NG téléchargé, tapez : <strong>ls</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/folder-download.png" class="img-fluid" style="width: 40rem; height: auto" alt="folder-download">
+						</p>
+						<p>
+							Décompressez le fichier télécharger
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo tar -xvf OCSNG_UNIX_SERVER-2.11.1.tar.gz
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Pour voir le dossier décompréssé, tapez : <strong>ls</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/folder-extract.png" class="img-fluid" style="width: 40rem; height: auto" alt="folder-exytract">
+						</p>
+						<p>
+							Rendez-vous dans le répertoire de OCS
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									cd OCSNG_UNIX_SERVER-2.11.1/
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Pour voir le contenu du dossier extrait de OCS Inventory NG, tapez : <strong>ls</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/folder-content.png" class="img-fluid" style="width: 40rem; height: auto" alt="folder-content">
+						</p>
+						<p>
+							Dans le dossier, éditez le fichier <strong>setup.sh</strong>
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo nano setup.sh
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Dans ce fichier, modifiez unqiuement les lignes <strong>DB_SERVER_USER</strong> et <strong>DB_SERVER_PWD</strong>
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									# Database server credentials
+									<br>
+									DB_SERVER_USER="ocs_user"
+									<br>
+									DB_SERVER_PWD="ocs_pwd"
+								</p>
+							</blockquote>
+						</figure>
+						
+						<p>
+							Vous devriez avoir ceci
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-setup.png" class="img-fluid" style="width: 40rem; height: auto" alt="ocs-setup">
+						</p>
+						<p>
+							Après avoir enregistré le fichier, lancez le script <strong>setup.sh</strong> pour installer OCS Inventory NG
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo ./setup.sh
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Lors de l'installation, plusieurs questions vous seront posées. Appuyez sur <strong>Entrée</strong> pour accepter toutes les options afin de terminer la configuration et de vous assurer que toutes les vérifications Perl ont réussi. Comme le montre les images suivantes :
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/checking-perl.png" class="img-fluid" style="width: 40rem; height: auto" alt="checking-perl">
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/checking-other.png" class="img-fluid" style="width: 40rem; height: auto" alt="checking-other">
+						</p>
+						<p>
+							A la fin du script d'installation, vous devriez avoir ceci :
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/setup-finish.png" class="img-fluid" style="width: 40rem; height: auto" alt="setup-finish">
+						</p>
+						<p>
+							À ce stade, OCS Inventory Server a été installé, il génère automatiquement les fichiers de configuration Apache, vous devez les activer avec les commandes suivantes ci-dessous :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo ln -s /etc/apache2/conf-available/ocsinventory-reports.conf /etc/apache2/conf-enabled/ocsinventory-reports.conf
+									<br><br>
+									sudo ln -s /etc/apache2/conf-available/z-ocsinventory-server.conf /etc/apache2/conf-enabled/z-ocsinventory-server.conf
+									<br><br>
+									sudo ln -s /etc/apache2/conf-available/zz-ocsinventory-restapi.conf /etc/apache2/conf-enabled/zz-ocsinventory-restapi.conf
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Ensuite rendez-vous dans le dossier <strong>conf-enabled</strong>
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									cd /etc/apache2/conf-enabled
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Afficher le contenu du dossier pour voir les deux fichiers qui nous intérèssent :
+						</p>
+						<ul>
+							<li>z-ocsinventory-server.conf</li>
+							<li>zz-ocsinventory-restapi.conf</li>
+						</ul>
+						<p>
+							Editez le fichier <strong>z-ocsinventory-server.conf</strong>
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo nano z-ocsinventory-server.conf
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Dans ce fichier modifiez les lignes :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									PerlSetEnv OCS_DB_NAME ocs_db
+									<br>
+									PerlSetEnv OCS_DB_LOCAL ocs_db
+									<br>
+									PerlSetEnv OCS_DB_USER ocs_user
+									<br>
+									PerlSetVar OCS_DB_PWD ocs_pwd
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Exemple en image
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/file-z.png" class="img-fluid" style="width: 40rem; height: auto" alt="file-z">
+						</p>
+						<p>
+							Enregistrez le fichier puis fermé, ensuite passons au fichier <strong>zz-ocsinventory-restapi.conf</strong>
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo nano zz-ocsinventory-restapi.conf
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Dans ce fichier modifiez les lignes :
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									$ENV{OCS_DB_LOCAL} = 'ocs_db';
+									<br>
+									$ENV{OCS_DB_USER} = 'ocs_user';
+									<br>
+									$ENV{OCS_DB_PWD} = 'ocs_pwd';
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Exemple en image
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/file-zz.png" class="img-fluid" style="width: 40rem; height: auto" alt="file-zz">
+						</p>
+						<p>
+							Enregistrez le fichier puis fermé.
+						</p>
+						<p>
+							Changez le propriétaire du du dossier <strong>ocsinventory-reports</strong>
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo chown -R www-data:www-data /var/lib/ocsinventory-reports
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Redémarrez le service Apache
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo systemctl restart apache2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Rendez-vous dans votre navigateur et tapez <strong>http://adresse-de-votre-serveur/ocsreports/install.php</strong>
+						</p>
+						<p>
+							Pour mon cas <strong>http://192.168.109.128/ocsreports/install.php</strong>
+						</p>
+						<p>
+							Une fois sur la page d'installation, remplissez le formulaire comme ci-dessous puis cliquez sur <strong>Send</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-page-1.png" class="img-fluid" alt="ocs-page-1">
+						</p>
+						<p>
+							Cliquez sur <strong>Click here to enter OCS-NG GUI</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-page-2.png" class="img-fluid" alt="ocs-page-2">
+						</p>
+						<p>
+							Cliquez sur <strong>Perform the update</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-page-3.png" class="img-fluid" alt="ocs-page-3">
+						</p>
+						<p>
+							Cliquez encore sur <strong>Click here to enter OCS-NG GUI</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-page-4.png" class="img-fluid" alt="ocs-page-4">
+						</p>
+						<p>
+							Ensuite sur la page de connexion, connectez-vous avec les identifiants par défaut qui sont :
+						</p>
+						<ul>
+							<li>User : <strong>Admin</strong></li>
+							<li>Password : <strong>Admin</strong></li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-login.png" class="img-fluid" alt="ocs-login">
+						</p>
+						<p>
+							Et vous devriez avoir le tableau de bord suivant :
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-home-1.png" class="img-fluid" alt="ocs-home-1">
+						</p>
+						<p>
+							Tout en haut du tableau de bord, nous avions deux avertissements :
+						</p>
+						<ul>
+							<li>Changer le mot de passe par défaut de l'administrateur</li>
+							<li>Et enlever le fichier install.php présent dans le répertoire /usr/share/ocsinventory-reports/ocsreports</li>
+						</ul>
+						<p>
+							Pour modifiez le mot de passe par défaut, rendez-vous dans <strong>Paramètres &raquo; My account</strong>, saisissez votre nouveau mot de passe puis cliquez sur <strong>OK</strong>.
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-modify-pwd.png" class="img-fluid" alt="ocs-modify-pwd">
+						</p>
+						<p>
+							Pour le fichier <strong>install.php</strong>, conservez-le en le renomant
+						</p>
+						<p>
+							Rendez-vous dans le répertoire où se trouve le fichier
+						</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									cd /usr/share/ocsinventory-reports/ocsreports
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							En affichant le contenu du répertoire nous voyons bien que notre fichier y est
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-install.php.png" class="img-fluid" style="width: 40rem; height: auto" alt="ocs-install.php">
+						</p>
+						<p>Renommez le fichier</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									mv install.php install.php.sauv
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-install.php.sauv.png" class="img-fluid" style="width: 40rem; height: auto" alt="ocs-install.php.sauv">
+						</p>
+						<p>Redémarrez le service Apache</p>
+						<figure class="bg-white p-2 rounded" style="border-left: .25rem solid #a34e78;">
+							<blockquote class="blockquote">
+								<p>
+									sudo systemctl restart apache2
+								</p>
+							</blockquote>
+						</figure>
+						<p>
+							Actualisez la page de navigateur et il n'y aura plus de message d'erreur
+						</p>
+						<p>
+							<img src="../asset/images/captures/ocs-ubuntu/ocs-home.png" class="img-fluid" alt="ocs-home">
+						</p>
+						<p>
+							Nous sommes à la fin de ce tutoriel.
+						</p>
+						
+						<!-- -->
+						<br>
+						<p class="lead">
+							<a class="btn btn-primary btn-lg text-left" href="./pxe-mikrotik.html" role="button">Lire le chapître suivant :<br><i>&laquo; PXE sur MikroTik CHR &raquo;</i></a>
+						</p>
+					</div>
+				</div>
+				<footer class="row">
+				  <div class="text-center col-lg-6 offset-lg-3">
+						<h4>AdminTutos</h4>
+						<hr>
+						<p>Copyright &copy; 2023 &middot; All Rights Reserved &middot;</p>
+					</div>
+				</footer>
+			</div>
+		</main>
+		
+		<script src="js/jquery-3.4.1.min.js"></script>
+		<script src="js/popper.min.js"></script>
+		<script src="js/bootstrap-4.4.1.js"></script>
+		
+	</body>
+</html>

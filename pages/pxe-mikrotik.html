@@ -1,4 +1,307 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>AdminTutos | PXE MikroTik CHR</title>
+		<link href="../asset/css/main.css" rel="stylesheet">
+		<link href="../asset/css/bootstrap-4.4.1.css" rel="stylesheet">
+	</head>
+	
+	<body>
+		<header>
+			<nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light">
+				<a class="navbar-brand" href="../index.html">AdminTutos</a>
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav mr-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="../index.html">Accueil</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="../pages/aboutme.html">A propos</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</header>
+		<main>
+			<div class="container-fluid">
+				<div class="row col-md-12">
+					<div class="jumbotron">
+						<h1 class="display-4">
+							Preboot Exécution Environment (PXE) sur MikroTik CHR
+						</h1>
+						<p class="lead">
+							Dans ce tutos, nous allons apprendre comment installer un système d'exploitation depuis le réseau via un serveur TFTP et un serveur DHCP. Nous allons pour le cas lancer l'installation <strong>Deian Server</strong> comme exemple pour notre serveur PXE. 
+							<br>
+							Il existe plusieurs moyen de le faire avec comme le service WDS de Windows. Mais comme vous l'aurez ici nous le ferons avec un routeur MikroTik CHR.
+						</p>
+						<hr class="my-4">
+						<h2>
+							Pré-requis :
+						</h2>
+						<p>
+							Pour mener à bien notre projet, nous aurons besoin de :<br>
+						</p>
+						<ul>
+							<li>Un routeur MikrTik CHR</li>
+							<li>Un poste client</li>
+						</ul>
+						<h2>Configuration :</h2>
+						<p>
+							Pour commencer, notre routeur aura deux interfaces :
+						</p>
+						<ul>
+							<li>ether1 : <strong></strong>192.168.0.41/24 (WAN) </li>
+							<li>ether2 : <strong></strong>192.168.1.1/24 (LAN)</li>
+						</ul>
+						<p>
+							Dans ce tutos, nous utiliserons l'interface graphique de MiktoTik.
+						</p>
+						<p>
+							Pour changer les adresse IP de vos interfaces, rendes-vous dans le menu <strong>IP &raquo; Adresses</strong> puis cliquez sur le l'icone du plus en haut de la fnêtre.
+						</p>
+						<p>
+							Pour ether1 :
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/ether1.png" class="img-fluid" style="width: 30rem; height: auto" alt="ether1">
+						</p>
+						<p>
+							Une fois que vous avez saisi l'adresse, cliquez sur <strong>OK</strong> et passez maintenant à ether2
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/ether2.png" class="img-fluid" style="width: 30rem; height: auto" alt="ether2">
+						</p>
+						<p>
+							Ensuite rendez-vous dans le menu <strong>IP &raquo; Pool</strong> pour créer une nouvelle plage d'adresses IP de notre serveur DHCP. Pour notre cas nous avons une plage d'adresses allant de 192.168.1.2 à 192.168.1.50.
+						</p>
+						
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/pool.png" class="img-fluid" style="width: 30rem; height: auto" alt="pool">
+						</p>
+						<p>
+							Ensuite rendez-vous dans le menu <strong>IP &raquo; DHCP-Sever</strong>
+						</p>
+						<p>
+							Cliquez sur <strong>&laquo; + &raquo;</strong> pour metrre en place en place notre service DHCP en sélectionnant <strong>l'interface</strong> sur lequel sera mis notre DHCP et le <strong>pool</strong> que nous venons de créer.
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/dhcp-server.png" class="img-fluid" style="width: 30rem; height: auto" alt="dhcp-server">
+						</p>
+						<p>
+							Ensuite rendez-vous dans l'onglet <strong>&laquo; Network &raquo;</strong> pour y mettre les paramètres réseau pour notre client DHCP ainsi que le nom du fichier <strong>Bootfile Name</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/network-dhcp.png" class="img-fluid" style="width: 30rem; height: auto" alt="network-dhcp">
+						</p>
+						<p>
+							Nous devrions maintenant ajouter les fichiers nécessaire au boot et à l'installation des systèmes d'exploitation dans notre MikroTik.
+						</p>
+						<p>
+							Pour avoir les fichiers qu'il faut rendez-vous sur le <a href="https://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/" target="_blank">site officiel de Debian</a> puis télécharger <strong>netboot.tar.gz</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/netboot-download.png" class="img-fluid" alt="netboot-download">
+						</p>
+						<p>
+							Après avoir téléchargé le fichier, décompréssé-le et mettez le contenu dans un dossier nommé <strong>boot-debian</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/boot-debian-contenu.png" class="img-fluid" alt="boot-debian-contenu">
+						</p>
+						<p>
+							Ouvrez le fichier <strong>&laquo; default &raquo;</strong> qui se trouve dans le dossier <strong>&laquo; pxelinux.cfg &raquo;</strong> et modifiez le en mettant le contenu suivant :
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/file-default.png" class="img-fluid" alt="file-default">
+						</p>
+						<p>
+							Ensuite dans notre MikroTik rendez-vous dans le menu <strong>Files</strong> et glisser déposer notre dossier
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/files-copy.png" class="img-fluid" alt="files-copy">
+						</p>
+						<p>
+							Une fois que cela a été fait rendez-vous dans le menu <strong>IP &raquo; TFTP</strong> puis cliquez sur <strong>&laquo; + &raquo;</strong> pour renseigner le fichier <strong>pxelinux0.cfg</strong>
+						</p>
+						<ul>
+							<li><strong>IP Addresses : </strong>il faudra renseigner le réseau dans lequel se trouve notre serveur DHCP</li>
+							<li><strong>Req. Filename : </strong>il faut renseigner le nom du fichier sinon la syntaxe du fichier tel que cela est demandé lors d'un message d'erreur à l'écran d'installation ou dans les logs</li>
+							<li><strong>Real Filename : </strong>il faut mettre le chemin du fichier tel qu'il se trouve dans notre MikroTik</li>
+						</ul>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/pxelinux0.png" class="img-fluid" alt="pxelinux0">
+						</p>
+						<p>
+							Ce qui donne :
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-view-1.png" class="img-fluid" alt="tftp">
+						</p>
+						<p>
+							Maintenant activez les logs dans MikroTik en allant dans le menu <strong>System &raquo; Logging</strong> puis cliquez sur <strong>&laquo; + &raquo;</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-logs.png" class="img-fluid" alt="tftp">
+						</p>
+						<p>
+							Demarrez le un poste client en activant le boot réseau. Dans ce premier temps le poste client cherche à contacter le serveur TFTP
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-check.png" class="img-fluid" alt="tftp">
+						</p>
+						<p>
+							Une fois le TFTP trouvé, il cherche le serveur DHCP
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/dhcp-check.png" class="img-fluid" alt="dhcp-check">
+						</p>
+						<p>
+							Si le fichier <strong>pxelinux0.cfg</strong> est mal chargé, vous aurez ce message d'erreur
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/pxelinux0-missing.png" class="img-fluid" alt="pxelinux0-missing">
+						</p>
+						<p>
+							Si le fichier est bien chargé, il continue le processus de bootage en cherchant les fichiers un à un. S'il y en a qu'il ne trouve pas, un message d'erreur s'affichera à l'écran du poste client ou dans les logs MikroTik avec le nom du fichier demandé (Req. Filename) comme le montre l'image ci dessous :
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/cli-ldlinux.c32.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							A chaque fois qu'un fichier sera manquant, vous devrez le renseigner dans notre TFTP sauf si le fichier n'est pas obligatoire (mais nous sommes d'accord que si le fichier n'est pas obligatoire ça ne bloquera pas l'installation ?)
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-ldlinux.c32.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Après avoir renseigner le fichier dans TFTP, rebooter le post client
+						</p>
+						<p>
+							Après le redémarrage, de mon coté aucun message d'erreur m'indiquant le fichier à renseigner dans TFTP de MikroTik ne s'affiche à l'écran du poste client. Je vais donc consulter les logs
+						</p>
+						<p>
+							Une fois dans les logs nous pouvons bien voir que l'on me demande le fichier <strong>pxelinux.cfg/default</strong>. Ce qui est très différent que si le message d'erreur demandait <strong>default</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/log-pxelinux.cfg.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Renseignons le fichier demandé dans notre TFTP
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-pxelinux.cfg.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							A chaque fois qu'un fichier sera demandé, renseigner le fichier puis rebooter le poste client
+						</p>
+						<p>
+							Après avoir rebooté, le fichier <strong>vesamenu.c32</strong> est demandé
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/log-vesamenu.c32.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Rajoutez le fichier le plus facilement possible
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-vesamenu.c32.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							C'est au tour de <strong>libcom.c32</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/log-libcom.c32.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Rajoutez le fichier
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-libcom.c32.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Le fichier <strong>libutil.c32</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-libutil.c32.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Avec un peu d'effort, vous arrivez mainteant à voir ce beau boot menu simple et unique
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/boot-menu-1.png" class="img-fluid" alt="boot">
+						</p>
+						<p>
+							Mais malheureusement en cliquant sur install ça ne marche pas. Vérifiez vos logs et vous verrez qu'il demande le fichier <strong>debian-installer/amd64/linux</strong>
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/log-linux.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Ajoutez le fichier
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-linux.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Cette fois-ci en cliquant sur <strong>install</strong> cela fonctionne car nous pouvons dans les logs les fichiers d'installation qui sont en train d'être téléchargés
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/debian-download.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Au bout d'un moment le téléchargement des fichiers d'installation s'arrête et on vérifiant dans les logs vous verrez qu'il nous manque le fichier <strong>intrd.gz</strong>
+						</p>
+						<p>
+							Ajoutez donc ce fichier
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-initrd.gz.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Après avoir ajouter le fichier et rebooter le poste client. Cliquez sur install dans le boot menu et patientez un instant pendant le téléchargement des fichiers, vous verez ainsi notre page d'installation de Debian se lancer.
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/debian-done.png" class="img-fluid" alt="file-check">
+						</p>
+						<p>
+							Ceci étant dit notre serveur PXE est bien fonctionnel et prêt à installer Debian sur n'importe quel poste client.
+						</p>
+						<p>
+							Voici un récapitulatif des fichiers renseignés dans notre TFTP
+						</p>
+						<p>
+							<img src="../asset/images/captures/pxe-mikrotik/tftp-recap-1.png" class="img-fluid" alt="file-check">
+						</p>
+						
+						<!-- -->
+						<br>
+						<p class="lead">
+							<a class="btn btn-primary btn-lg text-left" href="./pxe-mikrotik.html" role="button">Lire le chapître suivant :<br><i>&laquo; PXE sur MikroTik CHR &raquo;</i></a>
+						</p>
+					</div>
+				</div>
+				<footer class="row">
+				  <div class="text-center col-lg-6 offset-lg-3">
+						<h4>AdminTutos</h4>
+						<hr>
+						<p>Copyright &copy; 2023 &middot; All Rights Reserved &middot;</p>
+					</div>
+				</footer>
+			</div>
+		</main>
+		
+		<script src="js/jquery-3.4.1.min.js"></script>
+		<script src="js/popper.min.js"></script>
+		<script src="js/bootstrap-4.4.1.js"></script>
+		
+	</body>
+</html><!doctype html>
 <html>
 <head>
 <meta charset="utf-8">

@@ -1,10 +1,12 @@
 main {
-	padding: 20px;
-	text-align: justify;
+	padding: 70px 20px 20px 20px;
 }
 figure blockquote {
 	widht: 50px;
 }
 blockquote p {
 	font-size: 15px;
+}
+jumbotron {
+	max-width: 100%;
 }
